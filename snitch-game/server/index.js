@@ -216,16 +216,18 @@ socket.on("start_game", ({ code, imposterCount }) => {
     io.to(code).emit("phase_vote", { players: room.players });
   });
 
-  socket.on("submit_vote", ({ code, votedId }) => {
+socket.on("submit_vote", ({ code, votedIds }) => {
     const room = rooms[code];
     if (!room) return;
-    room.votes[socket.id] = votedId;
+    room.votes[socket.id] = votedIds;
     const voteCount = Object.keys(room.votes).length;
     io.to(code).emit("vote_update", { voteCount, total: room.players.length });
     if (voteCount >= room.players.length) {
       const tally = {};
-      Object.values(room.votes).forEach((id) => {
-        tally[id] = (tally[id] || 0) + 1;
+      Object.values(room.votes).forEach((ids) => {
+        ids.forEach(id => {
+          tally[id] = (tally[id] || 0) + 1;
+        });
       });
 const mostVoted = Object.entries(tally).sort((a, b) => b[1] - a[1])[0][0];
       const imposterCaught = room.imposters.includes(mostVoted);
