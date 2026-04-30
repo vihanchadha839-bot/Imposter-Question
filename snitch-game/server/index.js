@@ -171,27 +171,29 @@ io.on("connection", (socket) => {
     const room = rooms[code];
     if (!room) return socket.emit("error", "Room not found");
     if (room.phase !== "lobby") return socket.emit("error", "Game already started");
-    if (room.players.length >= 8) return socket.emit("error", "Room is full");
+    if (room.players.length >= 10) return socket.emit("error", "Room is full");
     room.players.push({ id: socket.id, name, isHost: false });
     socket.join(code);
     socket.emit("room_joined", { code, players: room.players, isHost: false });
     io.to(code).emit("players_updated", room.players);
     console.log(name, "joined room", code);
   });
-
-  socket.on("start_game", ({ code }) => {
+  
+socket.on("start_game", ({ code, imposterCount }) => {
     const room = rooms[code];
     if (!room) return;
     if (room.players.length < 3) return socket.emit("error", "Need at least 3 players");
-    const imposterIndex = Math.floor(Math.random() * room.players.length);
-    room.imposter = room.players[imposterIndex].id;
+    const count = Math.min(imposterCount || 1, Math.floor(room.players.length / 2));
+    const shuffled = [...room.players].sort(() => Math.random() - 0.5);
+    room.imposters = shuffled.slice(0, count).map(p => p.id);
     room.question = getRandomQuestion(code);
     room.phase = "question";
     room.seenCount = 0;
     room.votes = {};
     room.players.forEach((p) => {
-      const q = p.id === room.imposter ? room.question.imposter : room.question.normal;
-      io.to(p.id).emit("game_started", { question: q, players: room.players });
+      const isImposter = room.imposters.includes(p.id);
+      const q = isImposter ? room.question.imposter : room.question.normal;
+      io.to(p.id).emit("game_started", { question: q, players: room.players, isImposter });
     });
     console.log("Game started in room", code);
   });
@@ -226,11 +228,11 @@ io.on("connection", (socket) => {
         tally[id] = (tally[id] || 0) + 1;
       });
       const mostVoted = Object.entries(tally).sort((a, b) => b[1] - a[1])[0][0];
-      const imposterCaught = mostVoted === room.imposter;
-      const imposterPlayer = room.players.find((p) => p.id === room.imposter);
+      const imposterCaught = room.imposters.includes(mostVoted);
+      const imposterPlayers = room.players.filter((p) => room.imposters.includes(p.id));
       room.phase = "reveal";
       io.to(code).emit("phase_reveal", {
-        imposter: imposterPlayer,
+        imposters: imposterPlayers,
         normalQuestion: room.question.normal,
         imposterQuestion: room.question.imposter,
         imposterCaught,
