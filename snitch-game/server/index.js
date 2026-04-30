@@ -235,17 +235,19 @@ const mostVoted = Object.entries(tally).sort((a, b) => b[1] - a[1])[0][0];
         imposters: imposterPlayers,
         normalQuestion: room.question.normal,
         imposterQuestion: room.question.imposter,
-        imposterCaught,
+ 
+    imposterCaught,
         tally,
         players: room.players,
       });
+    }
   });
 
-  socket.on("play_again", ({ code }) => {
+socket.on("play_again", ({ code }) => {
     const room = rooms[code];
     if (!room) return;
     room.phase = "lobby";
-    room.imposter = null;
+    room.imposters = [];
     room.question = null;
     room.votes = {};
     room.seenCount = 0;
