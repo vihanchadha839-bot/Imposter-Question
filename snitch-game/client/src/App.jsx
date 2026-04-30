@@ -222,10 +222,12 @@ function DiscussScreen({ isHost, code, players, normalQuestion, onVote }) {
         <div className="logo" style={{fontSize:"2rem"}}>DISCUSS</div>
         <div className="subtitle">Talk it out — who's the imposter?</div>
       </div>
-   <div className="question-box">
+ <div className="question-box">
         <div className="question-label">THE QUESTION</div>
         <div className="question-text">{normalQuestion}</div>
       </div>
+      <div className="card">
+        <div className="card-title">RULES</div>
         <div style={{fontSize:"0.9rem", color:"var(--text-muted)", lineHeight:1.7}}>
           ✅ Describe your question without saying it directly<br/>
           ✅ Ask others about their answers<br/>
