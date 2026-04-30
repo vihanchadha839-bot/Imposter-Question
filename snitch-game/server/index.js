@@ -197,7 +197,7 @@ socket.on("start_game", ({ code, imposterCount }) => {
     });
     console.log("Game started in room", code);
   });
-
+  
   socket.on("seen_question", ({ code }) => {
     const room = rooms[code];
     if (!room) return;
