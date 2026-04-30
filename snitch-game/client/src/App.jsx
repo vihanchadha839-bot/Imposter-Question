@@ -257,10 +257,11 @@ function DiscussScreen({ isHost, code, players, normalQuestion, onVote }) {
   );
 }
 
-function VoteScreen({ players, myId, code, onReveal }) {
-  const [voted, setVoted] = useState(null);
+function VoteScreen({ players, myId, code, imposterCount, onReveal }) {
+  const [votes, setVotes] = useState([]);
+  const [submitted, setSubmitted] = useState(false);
   const [voteCount, setVoteCount] = useState(0);
-
+      
   useEffect(() => {
     const sock = getSocket();
     const handleVoteUpdate = ({ voteCount }) => setVoteCount(voteCount);
