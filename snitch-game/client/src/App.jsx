@@ -325,7 +325,7 @@ function VoteScreen({ players, myId, code, onReveal }) {
 }
 
 function RevealScreen({ data, isHost, code, onPlayAgain }) {
-  const { imposter, normalQuestion, imposterQuestion, imposterCaught, tally, players } = data;
+  const { imposters, normalQuestion, imposterQuestion, imposterCaught, tally, players } = data;
 
   useEffect(() => {
     const sock = getSocket();
@@ -343,8 +343,8 @@ function RevealScreen({ data, isHost, code, onPlayAgain }) {
         <div className="reveal-title">{imposterCaught ? "CAUGHT!" : "ESCAPED!"}</div>
         <div style={{fontSize:"0.95rem", color:"var(--text-muted)", marginTop:8}}>
           {imposterCaught
-            ? imposter?.name + " was the snitch!"
-            : imposter?.name + " fooled everyone!"}
+         ? "The imposter" + (imposters?.length > 1 ? "s were " : " was ") + imposters?.map(p => p.name).join(" & ") + "!"
+: imposters?.map(p => p.name).join(" & ") + " fooled everyone!"}
         </div>
       </div>
 
