@@ -383,7 +383,9 @@ export default function App() {
   const [players, setPlayers] = useState([]);
   const [isHost, setIsHost] = useState(false);
   const [myQuestion, setMyQuestion] = useState("");
-  const [revealData, setRevealData] = useState(null);
+const [revealData, setRevealData] = useState(null);
+  const [normalQuestion, setNormalQuestion] = useState("");
+  const [imposterCount, setImposterCount] = useState(1);
   const myIdRef = useRef(null);
 
   useEffect(() => {
