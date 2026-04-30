@@ -11,7 +11,6 @@ function getSocket() {
   return socket;
 }
 
-const EMOJIS = ["soccer","trophy","dart","lion","fire","star","gem","joystick","rocket","fox","wolf","guitar"];
 const EMOJI_CHARS = ["⚽","🏆","🎯","🦁","🔥","🌟","💎","🎮","🚀","🦊","🐺","🎸"];
 function getEmoji(name) { return EMOJI_CHARS[name.charCodeAt(0) % EMOJI_CHARS.length]; }
 
@@ -48,51 +47,26 @@ function HomeScreen({ onJoin }) {
   return (
     <div className="screen">
       <div>
-        <div className="logo">SNITCH<br /><span>QUESTION GAME</span></div>
-        <div className="subtitle" style={{marginTop:4}}>Multiplayer party game — find the snitch!</div>
+        <div className="logo">IMPOSTER<br /><span>QUESTION GAME</span></div>
+        <div className="subtitle" style={{marginTop:4}}>Multiplayer party game — find the imposter!</div>
       </div>
-
       <div className="card">
         <div className="card-title">YOUR NAME</div>
-        <input
-          type="text"
-          placeholder="Enter your name..."
-          value={name}
-          onChange={e => setName(e.target.value)}
-          maxLength={16}
-          autoComplete="off"
-        />
+        <input type="text" placeholder="Enter your name..." value={name} onChange={e => setName(e.target.value)} maxLength={16} autoComplete="off" />
       </div>
-
-      <button className="btn btn-primary" onClick={handleCreate}>
-        ⚡ Create Room
-      </button>
-
+      <button className="btn btn-primary" onClick={handleCreate}>⚡ Create Room</button>
       <div className="divider">or join a room</div>
-
       <div className="card">
         <div className="card-title">ROOM CODE</div>
-        <input
-          type="text"
-          placeholder="Enter code (e.g. XK92A)"
-          value={code}
-          onChange={e => setCode(e.target.value.toUpperCase())}
-          maxLength={5}
-          autoComplete="off"
-        />
+        <input type="text" placeholder="Enter code (e.g. XK92A)" value={code} onChange={e => setCode(e.target.value.toUpperCase())} maxLength={5} autoComplete="off" />
       </div>
-
-      <button className="btn btn-secondary" onClick={handleJoin}>
-        🔑 Join Room
-      </button>
-
+      <button className="btn btn-secondary" onClick={handleJoin}>🔑 Join Room</button>
       {error && <div className="error-msg">⚠️ {error}</div>}
-
       <div className="card" style={{marginTop:"auto"}}>
         <div style={{fontSize:"0.8rem", color:"var(--text-muted)", lineHeight:1.6}}>
           <strong style={{color:"var(--green)"}}>How to play:</strong><br/>
-          3 to 8 players — one is the snitch<br/>
-          Everyone gets a question — the snitch gets a slightly different one<br/>
+          3 to 10 players — one or more are imposters<br/>
+          Everyone gets a question — imposters get a slightly different one<br/>
           Discuss, vote, and reveal!
         </div>
       </div>
@@ -103,6 +77,7 @@ function HomeScreen({ onJoin }) {
 function LobbyScreen({ code, players: initPlayers, isHost, onBack }) {
   const [players, setPlayers] = useState(initPlayers);
   const [error, setError] = useState("");
+  const [imposterCount, setImposterCount] = useState(1);
 
   useEffect(() => {
     const sock = getSocket();
@@ -119,8 +94,10 @@ function LobbyScreen({ code, players: initPlayers, isHost, onBack }) {
   const handleStart = () => {
     if (players.length < 3) return setError("Need at least 3 players to start");
     setError("");
-    getSocket().emit("start_game", { code });
+    getSocket().emit("start_game", { code, imposterCount });
   };
+
+  const maxImposters = Math.max(1, Math.floor(players.length / 2));
 
   return (
     <div className="screen">
@@ -131,9 +108,8 @@ function LobbyScreen({ code, players: initPlayers, isHost, onBack }) {
           <div className="code">{code}</div>
         </div>
       </div>
-
       <div className="card">
-        <div className="card-title">PLAYERS ({players.length}/8)</div>
+        <div className="card-title">PLAYERS ({players.length}/10)</div>
         <div className="player-list">
           {players.map(p => (
             <div className="player-item" key={p.id}>
@@ -149,8 +125,7 @@ function LobbyScreen({ code, players: initPlayers, isHost, onBack }) {
           </div>
         )}
       </div>
-
- {isHost && (
+      {isHost && (
         <div className="card">
           <div className="card-title">NUMBER OF IMPOSTERS</div>
           <div style={{display:"flex", gap:"10px"}}>
@@ -169,9 +144,7 @@ function LobbyScreen({ code, players: initPlayers, isHost, onBack }) {
           </div>
         </div>
       )}
-
       {error && <div className="error-msg">⚠️ {error}</div>}
-
       {isHost ? (
         <button className="btn btn-primary" onClick={handleStart} disabled={players.length < 3}>
           ▶ START GAME
@@ -181,7 +154,6 @@ function LobbyScreen({ code, players: initPlayers, isHost, onBack }) {
           Waiting for host to start...
         </div>
       )}
-
       <button className="btn btn-secondary" style={{marginTop:"auto"}} onClick={onBack}>
         ← Leave Room
       </button>
@@ -217,20 +189,16 @@ function QuestionScreen({ question, players, code, onAllSeen }) {
         <div className="logo" style={{fontSize:"2rem"}}>YOUR QUESTION</div>
         <div className="subtitle">Read it — don't show anyone!</div>
       </div>
-
       <div className="question-box">
         <div className="question-label">YOUR QUESTION IS</div>
         <div className="question-text">{question}</div>
       </div>
-
       <div className="card" style={{fontSize:"0.85rem", color:"var(--text-muted)", textAlign:"center"}}>
         📌 Remember your question. Discuss with the group but don't reveal it directly!
       </div>
-
       <button className="btn btn-primary" onClick={handleReady} disabled={ready}>
         {ready ? "✅ Waiting for others..." : "✋ I'm Ready to Vote"}
       </button>
-
       {ready && (
         <div className="seen-counter">
           <strong>{readyCount}</strong>/{players.length} players ready...
@@ -252,19 +220,17 @@ function DiscussScreen({ isHost, code, players, onVote }) {
     <div className="screen">
       <div>
         <div className="logo" style={{fontSize:"2rem"}}>DISCUSS</div>
-        <div className="subtitle">Talk it out — who's the snitch?</div>
+        <div className="subtitle">Talk it out — who's the imposter?</div>
       </div>
-
       <div className="card">
         <div className="card-title">RULES</div>
         <div style={{fontSize:"0.9rem", color:"var(--text-muted)", lineHeight:1.7}}>
           ✅ Describe your question without saying it directly<br/>
           ✅ Ask others about their answers<br/>
           ❌ Don't reveal your exact question<br/>
-          😈 Try to catch the snitch!
+          😈 Try to catch the imposter!
         </div>
       </div>
-
       <div className="card">
         <div className="card-title">PLAYERS</div>
         <div className="player-list">
@@ -276,7 +242,6 @@ function DiscussScreen({ isHost, code, players, onVote }) {
           ))}
         </div>
       </div>
-
       {isHost ? (
         <button className="btn btn-gold" onClick={() => getSocket().emit("start_vote", { code })}>
           🗳 START VOTING
@@ -306,24 +271,20 @@ function VoteScreen({ players, myId, code, onReveal }) {
     };
   }, [onReveal]);
 
-const [imposterCount, setImposterCount] = useState(1);
-
-  const handleStart = () => {
-    if (players.length < 3) return setError("Need at least 3 players to start");
-    setError("");
-    getSocket().emit("start_game", { code, imposterCount });
+  const handleVote = (id) => {
+    if (voted) return;
+    setVoted(id);
+    getSocket().emit("submit_vote", { code, votedId: id });
   };
 
-  const maxImposters = Math.max(1, Math.floor(players.length / 2));
   const others = players.filter(p => p.id !== myId);
 
   return (
     <div className="screen">
       <div>
         <div className="logo" style={{fontSize:"2rem"}}>VOTE</div>
-        <div className="subtitle">Who do you think is the snitch?</div>
+        <div className="subtitle">Who do you think is the imposter?</div>
       </div>
-
       {!voted ? (
         <div className="vote-list">
           {others.map(p => (
@@ -366,11 +327,10 @@ function RevealScreen({ data, isHost, code, onPlayAgain }) {
         <div className="reveal-title">{imposterCaught ? "CAUGHT!" : "ESCAPED!"}</div>
         <div style={{fontSize:"0.95rem", color:"var(--text-muted)", marginTop:8}}>
           {imposterCaught
-         ? "The imposter" + (imposters?.length > 1 ? "s were " : " was ") + imposters?.map(p => p.name).join(" & ") + "!"
-: imposters?.map(p => p.name).join(" & ") + " fooled everyone!"}
+            ? "The imposter" + (imposters?.length > 1 ? "s were " : " was ") + imposters?.map(p => p.name).join(" & ") + "!"
+            : imposters?.map(p => p.name).join(" & ") + " fooled everyone!"}
         </div>
       </div>
-
       <div className="card">
         <div className="card-title">THE QUESTIONS</div>
         <div className="q-compare">
@@ -379,25 +339,24 @@ function RevealScreen({ data, isHost, code, onPlayAgain }) {
             <div className="qtext">{normalQuestion}</div>
           </div>
           <div className="q-box imposter-q">
-            <div className="qlabel">🎭 Snitch</div>
+            <div className="qlabel">🎭 Imposter</div>
             <div className="qtext">{imposterQuestion}</div>
           </div>
         </div>
       </div>
-
       <div className="card">
         <div className="card-title">VOTE TALLY</div>
         <div className="vote-tally">
           {players.map(p => {
             const count = tally?.[p.id] || 0;
-          const isSnitch = imposters?.some(i => i.id === p.id);
+            const isImposter = imposters?.some(i => i.id === p.id);
             return (
               <div className="tally-row" key={p.id}>
-                <div className="tally-name" style={{color: isSnitch ? "var(--red)" : "var(--text)"}}>
-                  {getEmoji(p.name)} {p.name}{isSnitch ? " 🎭" : ""}
+                <div className="tally-name" style={{color: isImposter ? "var(--red)" : "var(--text)"}}>
+                  {getEmoji(p.name)} {p.name}{isImposter ? " 🎭" : ""}
                 </div>
                 <div className="tally-bar-wrap">
-                  <div className={"tally-bar" + (isSnitch ? " imposter" : "")} style={{width: (count/maxVotes*100) + "%"}} />
+                  <div className={"tally-bar" + (isImposter ? " imposter" : "")} style={{width: (count/maxVotes*100) + "%"}} />
                 </div>
                 <div className="tally-count">{count}</div>
               </div>
@@ -405,7 +364,6 @@ function RevealScreen({ data, isHost, code, onPlayAgain }) {
           })}
         </div>
       </div>
-
       {isHost ? (
         <button className="btn btn-primary" onClick={() => getSocket().emit("play_again", { code })}>
           🔄 PLAY AGAIN
@@ -454,23 +412,11 @@ export default function App() {
     setScreen("lobby");
   };
 
-  if (screen === "home") {
-    return <HomeScreen onJoin={handleJoin} />;
-  }
-  if (screen === "lobby") {
-    return <LobbyScreen code={roomCode} players={players} isHost={isHost} onBack={() => setScreen("home")} />;
-  }
-  if (screen === "question") {
-    return <QuestionScreen question={myQuestion} players={players} code={roomCode} onAllSeen={() => setScreen("discuss")} />;
-  }
-  if (screen === "discuss") {
-    return <DiscussScreen isHost={isHost} code={roomCode} players={players} onVote={(p) => { setPlayers(p); setScreen("vote"); }} />;
-  }
-  if (screen === "vote") {
-    return <VoteScreen players={players} myId={myIdRef.current} code={roomCode} onReveal={(data) => { setRevealData(data); setScreen("reveal"); }} />;
-  }
-  if (screen === "reveal") {
-    return <RevealScreen data={revealData} isHost={isHost} code={roomCode} onPlayAgain={(p) => { setPlayers(p); setScreen("lobby"); }} />;
-  }
+  if (screen === "home") return <HomeScreen onJoin={handleJoin} />;
+  if (screen === "lobby") return <LobbyScreen code={roomCode} players={players} isHost={isHost} onBack={() => setScreen("home")} />;
+  if (screen === "question") return <QuestionScreen question={myQuestion} players={players} code={roomCode} onAllSeen={() => setScreen("discuss")} />;
+  if (screen === "discuss") return <DiscussScreen isHost={isHost} code={roomCode} players={players} onVote={(p) => { setPlayers(p); setScreen("vote"); }} />;
+  if (screen === "vote") return <VoteScreen players={players} myId={myIdRef.current} code={roomCode} onReveal={(data) => { setRevealData(data); setScreen("reveal"); }} />;
+  if (screen === "reveal") return <RevealScreen data={revealData} isHost={isHost} code={roomCode} onPlayAgain={(p) => { setPlayers(p); setScreen("lobby"); }} />;
   return null;
 }
