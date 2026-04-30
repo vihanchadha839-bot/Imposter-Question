@@ -274,10 +274,15 @@ function VoteScreen({ players, myId, code, imposterCount, onReveal }) {
     };
   }, [onReveal]);
 
-  const handleVote = (id) => {
-    if (voted) return;
-    setVoted(id);
-    getSocket().emit("submit_vote", { code, votedId: id });
+  const toggleVote = (id) => {
+    if (submitted) return;
+    setVotes(prev => prev.includes(id) ? prev.filter(v => v !== id) : prev.length < imposterCount ? [...prev, id] : prev);
+  };
+
+  const handleSubmit = () => {
+    if (votes.length === 0) return;
+    setSubmitted(true);
+    getSocket().emit("submit_vote", { code, votedIds: votes });
   };
 
   const others = players.filter(p => p.id !== myId);
@@ -286,21 +291,27 @@ function VoteScreen({ players, myId, code, imposterCount, onReveal }) {
     <div className="screen">
       <div>
         <div className="logo" style={{fontSize:"2rem"}}>VOTE</div>
-        <div className="subtitle">Who do you think is the imposter?</div>
+        <div className="subtitle">Pick {imposterCount} imposter{imposterCount > 1 ? "s" : ""} — select {imposterCount} player{imposterCount > 1 ? "s" : ""}</div>
       </div>
-      {!voted ? (
-        <div className="vote-list">
-          {others.map(p => (
-            <button key={p.id} className="vote-btn" onClick={() => handleVote(p.id)}>
-              <span style={{fontSize:"1.3rem"}}>{getEmoji(p.name)}</span>
-              <span>{p.name}</span>
-            </button>
-          ))}
-        </div>
+      {!submitted ? (
+        <>
+          <div className="vote-list">
+            {others.map(p => (
+              <button key={p.id} className={"vote-btn" + (votes.includes(p.id) ? " selected" : "")} onClick={() => toggleVote(p.id)}>
+                <span style={{fontSize:"1.3rem"}}>{getEmoji(p.name)}</span>
+                <span>{p.name}</span>
+                {votes.includes(p.id) && <span style={{marginLeft:"auto"}}>✅</span>}
+              </button>
+            ))}
+          </div>
+          <button className="btn btn-gold" onClick={handleSubmit} disabled={votes.length === 0}>
+            🗳 Submit {votes.length}/{imposterCount} Votes
+          </button>
+        </>
       ) : (
         <div className="card" style={{textAlign:"center"}}>
           <div style={{fontSize:"2rem", marginBottom:8}}>✅</div>
-          <div style={{fontWeight:700}}>Vote submitted!</div>
+          <div style={{fontWeight:700}}>Votes submitted!</div>
           <div className="seen-counter" style={{marginTop:8}}>
             <strong>{voteCount}</strong>/{players.length} votes in...
           </div>
