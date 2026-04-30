@@ -398,9 +398,11 @@ const [revealData, setRevealData] = useState(null);
 
   useEffect(() => {
     const sock = getSocket();
-    const handleGameStarted = ({ question, players }) => {
+   const handleGameStarted = ({ question, players, normalQuestion, imposterCount }) => {
       setMyQuestion(question);
       setPlayers(players);
+      setNormalQuestion(normalQuestion);
+      setImposterCount(imposterCount);
       setScreen("question");
     };
     sock.on("game_started", handleGameStarted);
