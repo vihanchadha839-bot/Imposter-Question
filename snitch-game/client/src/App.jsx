@@ -150,6 +150,26 @@ function LobbyScreen({ code, players: initPlayers, isHost, onBack }) {
         )}
       </div>
 
+ {isHost && (
+        <div className="card">
+          <div className="card-title">NUMBER OF IMPOSTERS</div>
+          <div style={{display:"flex", gap:"10px"}}>
+            {Array.from({length: maxImposters}, (_, i) => i + 1).map(n => (
+              <button key={n} onClick={() => setImposterCount(n)} style={{
+                flex:1, padding:"12px", borderRadius:"10px",
+                border: imposterCount === n ? "2px solid var(--green)" : "2px solid var(--border)",
+                background: imposterCount === n ? "var(--green-dim)" : "var(--surface2)",
+                color: imposterCount === n ? "var(--green)" : "var(--text-muted)",
+                fontFamily:"var(--font-display)", fontSize:"1.3rem", cursor:"pointer"
+              }}>{n}</button>
+            ))}
+          </div>
+          <div style={{fontSize:"0.8rem", color:"var(--text-muted)", marginTop:8, textAlign:"center"}}>
+            {imposterCount} imposter{imposterCount > 1 ? "s" : ""} out of {players.length} players
+          </div>
+        </div>
+      )}
+
       {error && <div className="error-msg">⚠️ {error}</div>}
 
       {isHost ? (
@@ -286,12 +306,15 @@ function VoteScreen({ players, myId, code, onReveal }) {
     };
   }, [onReveal]);
 
-  const handleVote = (id) => {
-    if (voted) return;
-    setVoted(id);
-    getSocket().emit("submit_vote", { code, votedId: id });
+const [imposterCount, setImposterCount] = useState(1);
+
+  const handleStart = () => {
+    if (players.length < 3) return setError("Need at least 3 players to start");
+    setError("");
+    getSocket().emit("start_game", { code, imposterCount });
   };
 
+  const maxImposters = Math.max(1, Math.floor(players.length / 2));
   const others = players.filter(p => p.id !== myId);
 
   return (
@@ -367,7 +390,7 @@ function RevealScreen({ data, isHost, code, onPlayAgain }) {
         <div className="vote-tally">
           {players.map(p => {
             const count = tally?.[p.id] || 0;
-            const isSnitch = p.id === imposter?.id;
+          const isSnitch = imposters?.some(i => i.id === p.id);
             return (
               <div className="tally-row" key={p.id}>
                 <div className="tally-name" style={{color: isSnitch ? "var(--red)" : "var(--text)"}}>
