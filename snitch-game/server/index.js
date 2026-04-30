@@ -227,7 +227,7 @@ socket.on("start_game", ({ code, imposterCount }) => {
       Object.values(room.votes).forEach((id) => {
         tally[id] = (tally[id] || 0) + 1;
       });
-      const mostVoted = Object.entries(tally).sort((a, b) => b[1] - a[1])[0][0];
+const mostVoted = Object.entries(tally).sort((a, b) => b[1] - a[1])[0][0];
       const imposterCaught = room.imposters.includes(mostVoted);
       const imposterPlayers = room.players.filter((p) => room.imposters.includes(p.id));
       room.phase = "reveal";
@@ -239,7 +239,6 @@ socket.on("start_game", ({ code, imposterCount }) => {
         tally,
         players: room.players,
       });
-    }
   });
 
   socket.on("play_again", ({ code }) => {
