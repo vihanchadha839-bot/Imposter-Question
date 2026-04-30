@@ -419,8 +419,8 @@ const [revealData, setRevealData] = useState(null);
   if (screen === "home") return <HomeScreen onJoin={handleJoin} />;
   if (screen === "lobby") return <LobbyScreen code={roomCode} players={players} isHost={isHost} onBack={() => setScreen("home")} />;
   if (screen === "question") return <QuestionScreen question={myQuestion} players={players} code={roomCode} onAllSeen={() => setScreen("discuss")} />;
-  if (screen === "discuss") return <DiscussScreen isHost={isHost} code={roomCode} players={players} onVote={(p) => { setPlayers(p); setScreen("vote"); }} />;
-  if (screen === "vote") return <VoteScreen players={players} myId={myIdRef.current} code={roomCode} onReveal={(data) => { setRevealData(data); setScreen("reveal"); }} />;
+if (screen === "discuss") return <DiscussScreen isHost={isHost} code={roomCode} players={players} normalQuestion={normalQuestion} onVote={(p) => { setPlayers(p); setScreen("vote"); }} />;
+  if (screen === "vote") return <VoteScreen players={players} myId={myIdRef.current} code={roomCode} imposterCount={imposterCount} onReveal={(data) => { setRevealData(data); setScreen("reveal"); }} />;
   if (screen === "reveal") return <RevealScreen data={revealData} isHost={isHost} code={roomCode} onPlayAgain={(p) => { setPlayers(p); setScreen("lobby"); }} />;
   return null;
 }
