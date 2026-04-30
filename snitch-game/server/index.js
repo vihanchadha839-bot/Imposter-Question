@@ -191,7 +191,6 @@ socket.on("start_game", ({ code, imposterCount }) => {
     room.seenCount = 0;
     room.votes = {};
     room.players.forEach((p) => {
-    room.players.forEach((p) => {
       const isImposter = room.imposters.includes(p.id);
       const q = isImposter ? room.question.imposter : room.question.normal;
       io.to(p.id).emit("game_started", { question: q, players: room.players, isImposter, normalQuestion: room.question.normal, imposterCount: count });
